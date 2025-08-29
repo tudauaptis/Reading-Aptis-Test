@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aptis Reading Test - Tủ đậu Aptis</title>
+    <style>
+        /* --- General Styles & Variables --- */
+        :root {
+            --primary-color: #2E7D32; /* Tông màu xanh lá cây đậm */
+            --secondary-color: #FFFEEF; /* Tông màu be */
+            --accent-color: #4CAF50; /* Xanh lá cây sáng hơn cho các nút */
+            --text-color: #333333;
+            --border-color: #DDDDDD;
+            --light-green: #E8F5E9;
+            --light-red: #FFEBEE;
+            --correct-color: #2E7D32;
+            --incorrect-color: #D32F2F;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 960px;
+            background-color: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Header --- */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 30px; /* Giảm padding trên dưới */
+            background-color: var(--secondary-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .logo {
+            height: 80px;
+            width: 80px;
+        }
+        #timer {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--primary-color);
+            background-color: white;
+            padding: 5px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* --- Footer --- */
+        .app-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background-color: var(--secondary-color); /* Nền màu be giống header */
+            color: var(--primary-color);
+            font-weight: 500;
+            border-top: 1px solid var(--border-color);
+        }
+        .app-footer p {
+            margin: 4px 0;
+        }
+
+
+        /* --- Main Content --- */
+        .main-content {
+            padding: 30px 40px;
+            flex-grow: 1;
+        }
+
+        /* --- Start Screen --- */
+        #start-screen {
+            text-align: center;
+        }
+        #start-screen h1 {
+            color: var(--primary-color);
+            font-size: 2.5em;
+        }
+        .btn {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background-color: var(--primary-color);
+        }
+
+        /* --- Quiz Screen --- */
+        #quiz-screen {
+            display: none;
+        }
+        .quiz-header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .quiz-header h2 {
+            color: var(--primary-color);
+            margin: 0;
+        }
+        .part-container {
+            display: none; /* Hide all parts initially */
+        }
+        .part-container.active {
+            display: block; /* Show active part */
+        }
+        .part-content {
+            line-height: 1.7;
+        }
+
+        /* Part 1 & 3 & 4 Selects */
+        select {
+            font-size: 1em;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: white;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+
+        /* Part 2 Drag & Drop - NEW STYLES */
+        .part2-layout {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .source-list, .drop-area {
+            flex: 1;
+        }
+        .source-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .draggable-item {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: grab;
+        }
+        .draggable-item.dragging {
+            opacity: 0.5;
+            background-color: #eef2ff;
+        }
+        .fixed-sentence {
+            background-color: var(--light-green);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .drop-zone {
+            border: 2px dashed var(--border-color);
+            min-height: 62px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            padding: 2px; /* Add padding to contain the item */
+        }
+        .drop-zone.over {
+            border-color: var(--primary-color);
+            background-color: var(--light-green);
+        }
+        .drop-zone .draggable-item {
+            margin-bottom: 0; /* Remove margin when inside drop zone */
+        }
+
+
+        /* Part 3 Matching */
+        .matching-question {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        /* Part 4 Headings */
+        .paragraph { margin-bottom: 20px; }
+
+        /* --- Navigation --- */
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+        .nav-btn {
+            background-color: #757575;
+        }
+
+        /* --- Result Screen --- */
+        #result-screen {
+            display: none;
+            text-align: center;
+            position: relative;
+        }
+        #result-screen h2 {
+            color: var(--primary-color);
+            font-size: 2.2em;
+            font-weight: bold;
+        }
+        .score-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin: 20px 0;
+        }
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--light-green);
+            border: 5px solid var(--primary-color);
+        }
+        #final-score { font-size: 2.5em; font-weight: bold; color: var(--primary-color); }
+        #cefr-level { font-size: 1.2em; color: #555; }
+        canvas#confetti {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* --- Review Screen --- */
+        #review-screen { display: none; }
+        .review-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .review-item.correct { background-color: var(--light-green); }
+        .review-item.incorrect { background-color: var(--light-red); }
+        .review-item p { margin: 5px 0; }
+        .user-answer { color: var(--incorrect-color); font-weight: bold; }
+        .correct-answer { color: var(--correct-color); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="app-header">
+            <img src="https://i.ibb.co/yns0rx09/avt-t-u-aptis.png" alt="Logo Tủ đậu Aptis" class="logo">
+            <div id="timer-container" style="display: none;">
+                <div id="timer">35:00</div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Start Screen -->
+            <div id="start-screen">
+                <h1>READING APTIS TEST</h1>
+                <p>Bài thi gồm 4 phần, thực hiện trong 35 phút.</p>
+                <button id="start-btn" class="btn">Bắt đầu bài test</button>
+            </div>
+
+            <!-- Quiz Screen -->
+            <div id="quiz-screen">
+                <!-- Part 1 -->
+                <div id="part1" class="part-container active">
+                    <div class="quiz-header"><h2>PART 1: Fill in the blanks</h2></div>
+                    <div class="part-content">
+                        <p><b>Question 1 of 5</b><br>Read the email from Jessica to her friend. Choose one word from the list for each gap.<b>(10 points)</b><br></p>
+                        <p>Dear Sarah,<br>I come to another country to learn at the university</p>
+                        <p>1. I come to the dorms and <select id="p1q1"><option value="">--</option><option value="live">live</option><option value="send">send</option><option value="rent">rent</option></select> with my classmates.</p>
+                        <p>2. I also <select id="p1q2"><option value="">--</option><option value="share">share</option><option value="pay">pay</option><option value="receive">receive</option></select> the electricity bill together every month.</p>
+                        <p>3. We often have a <select id="p1q3"><option value="">--</option><option value="class">class</option><option value="letter">letter</option><option value="announcement">announcement</option></select> to learn English on Fridays.</p>
+                        <p>4. After the class, we will <select id="p1q4"><option value="">--</option><option value="drive">drive</option><option value="ride">ride</option><option value="steer">steer</option></select> home in our car.</p>
+                        <p>5. And when we get home, we will <select id="p1q5"><option value="">--</option><option value="chase">chase</option><option value="cook">cook</option><option value="decorate">decorate</option></select> a big meal.</p>
+                        <p>Love,<br>Jessica.</p>
+                    </div>
+                </div>
+
+                <!-- Part 2 - Task 1 -->
+                <div id="part2_task1" class="part-container">
+                    <div class="quiz-header"><h2>PART 2: Sentence Ordering</h2></div>
+                    <div class="part-content">
+                        <p><b>Question 2 of 5</b><br>The sentences below are from some instructions. Put the sentences in the right order.<b>(5 points)</b><br></p>
+                        <div class="part2-layout">
+                            <div class="source-list" id="p2t1-source">
+                                <div class="draggable-item" draggable="true" id="p2t1-item1" data-id="1">1. As well as selling tickets, they can provide maps and useful tour information.</div>
+                                <div class="draggable-item" draggable="true" id="p2t1-item2" data-id="2">2. The entrance of the center is on the town’s main square.</div>
+                                <div class="draggable-item" draggable="true" id="p2t1-item3" data-id="3">3. The ticket office is on the top of these stairs, the staff there are very helpful.</div>
+                                <div class="draggable-item" draggable="true" id="p2t1-item4" data-id="4">4. The most important of these is the Natural History Center.</div>
+                                <div class="draggable-item" draggable="true" id="p2t1-item5" data-id="5">5. When you enter the building from the square, you will see a set of stairs to your left.</div>
+                            </div>
+                            <div class="drop-area">
+                                <div class="fixed-sentence">0. It’s recommended that you visit a few museums in the city.</div>
+                                <div class="drop-zone-container" id="p2t1-drop-zones">
+                                    <div class="drop-zone"></div>
+                                    <div class="drop-zone"></div>
+                                    <div class="drop-zone"></div>
+                                    <div class="drop-zone"></div>
+                                    <div class="drop-zone"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Part 2 - Task 2 -->
+                <div id="part2_task2" class="part-container">
+                    <div class="quiz-header"><h2>PART 2: Sentence Ordering</h2></div>
+                    <div class="part-content">
+                        <p><b>Question 3 of 5</b><br>The sentences below are from a report. Put the sentences in the right order.<b>(5 points)</b><br></p>
+                        <div class="part2-layout">
+                             <div class="source-list" id="p2t2-source">
+                                <div class="draggable-item" draggable="true" id="p2t2-item1" data-id="1">1. Since he retired from playing, he has worked as a football club manager.</div>
+                                <div class="draggable-item" draggable="true" id="p2t2-item2" data-id="2">2. When he was a child, he played for some local teams near his home in Marseille.</div>
+                                <div class="draggable-item" draggable="true" id="p2t2-item3" data-id="3">3. While he was at that club, people throughout France saw a brilliant player.</div>
+                                <div class="draggable-item" draggable="true" id="p2t2-item4" data-id="4">4. He then moved away from his home to join Cannes Football Club in the southern France.</div>
+                                <div class="draggable-item" draggable="true" id="p2t2-item5" data-id="5">5. Later, he played in Italy and Spain.</div>
+                            </div>
+                            <div class="drop-area">
+                                <div class="fixed-sentence">0. The person in the picture is a famous football player.</div>
+                                <div class="drop-zone-container" id="p2t2-drop-zones">
+                                    <div class="drop-zone"></div>
+                                    <div class="drop-zone"></div>
+                                    <div class="drop-zone"></div>
+                                    <div class="drop-zone"></div>
+                                    <div class="drop-zone"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Part 3 -->
+                <div id="part3" class="part-container">
+                    <div class="quiz-header"><h2>PART 3: Opinion Matching</h2></div>
+                    <div class="part-content">
+                        <p><b>Question 4 of 5</b><br>Four people respond in the comments section of an online food magazine about a newly opened restaurant. Read the texts and then answer the questions below.<b>(16 points)</b><br></p>
+                        <p><b>Person A:</b> This is my first time coming to this restaurant. The food is very cheap but the quality is excellent. I was very surprised with the starter because its menu is very diverse. But there is one thing that I want the restaurant to improve. The music was too low, and it didn't make the meal atmosphere lively. Next time turn the music louder, please!</p>
+                        <p><b>Person B:</b> This is a very famous restaurant that I saw in the newspaper. Sadly, I arrived later than the rest of the party, so I didn't get to order dinner. However, I ordered orange juice and mango juice and they were both delicious. What about the surroundings? Lively music, along with fashionable and appropriate decor, makes me feel very comfortable.</p>
+                        <p><b>Person C:</b> I'm not sure if I will return to this restaurant. I think the staff was arguing when I got there because the atmosphere here was not very comfortable. As for the food, I think there's nothing to write about. I ordered fish and chips, it wasn't bad, but it wasn't good either. But many people say that the food here is fabulous. So, I think I'm an exception.</p>
+                        <p><b>Person D:</b>  I don't understand why this restaurant is so famous. When I arrived and saw a menu with lots of different dishes, I saw this as a bad sign. Furthermore, the menu with traditional dishes contrasting with the modern decoration style made me feel very confused and strange. The staff here are also not friendly. This was one of my worst experiences eating at a restaurant. </p>
+                        <hr>
+                        <div class="matching-question"><span>1. Who was impressed by the range of the appetizers?</span><select id="p3q1" class="person-select"><option value="">-</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>
+                        <div class="matching-question"><span>2. Who thinks the music was too quiet?</span><select id="p3q2" class="person-select"><option value="">-</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>
+                        <div class="matching-question"><span>3. Who thinks the quality of the food is average?</span><select id="p3q3" class="person-select"><option value="">-</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>
+                        <div class="matching-question"><span>4. Who thinks didn’t eat anything?</span><select id="p3q4" class="person-select"><option value="">-</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>
+                        <div class="matching-question"><span>5. Who thinks definitely will not come back to the restaurant again?</span><select id="p3q5" class="person-select"><option value="">-</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>
+                        <div class="matching-question"><span>6. Who thinks their bad experience was probably unusual?</span><select id="p3q6" class="person-select"><option value="">-</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>
+                        <div class="matching-question"><span>7. Who enjoyed the atmosphere of the restaurant?</span><select id="p3q7" class="person-select"><option value="">-</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>
+                    </div>
+                </div>
+
+                <!-- Part 4 -->
+                <div id="part4" class="part-container">
+                    <div class="quiz-header"><h2>PART 4: Paragraph Headings</h2></div>
+                    <div class="part-content">
+                        <p><b>Question 5 of 5</b><br>Read the passage quickly. Choose a heading for each numbered paragraph (1–7) from the drop-down box. There is one more heading than you need.<b>(14 points)</b><br></p>
+                        <h4>CHINESE FOOD</h4>
+                        <div class="paragraph">
+                            <p><b>1.</b><select id="p4q1" class="heading-select"></select></p>
+                            <p>As in most cultures, the Chinese food tradition grew from basic hunting and gathering. Over the centuries, society became more sophisticated as did the cooking and, about 2000 years ago, food preparation started to become a form of high art in China. Experts consider this 'art' to have reached its peak in the early 1900s. Then the main focus was to extract the maximum flavor from each ingredient, but still maintain the simplicity of the dish. Not all Chinese people ate like this, most people followed a diet of rice and vegetables.</p>
+                        </div>
+                        <div class="paragraph">
+                            <p><b>2.</b><select id="p4q2" class="heading-select"></select></p>
+                            <p>One of the many complex influences on Chinese food is the concept of yin and yang. Yin and yang are opposites that complement each other to achieve a natural balance. For example, sweet and Sour, and cold and hot. In the Chinese food tradition, different foods are seen as “hot” or “cold”, regardless of the temperature of the dish itself. Lemon and green tea are “cold”, while onion and chocolate are hot. People attempt to maintain the body's internal balance of “hot” and “cold” by selecting the right type of food to eat. This forms a fundamental part of how people maintain health and prevent disease.</p>
+                        </div>
+                        <div class="paragraph">
+                            <p><b>3.</b><select id="p4q3" class="heading-select"></select></p>
+                            <p>Besides philosophy, another influence on Chinese food is the availability of ingredients, and this has given rise to distinct regional varieties of cooking. The coastal areas, particularly in the south of the country, are famous for tasty seafood dishes. In China's northern region intensive wheat cultivation has meant that a main part of the diet is noodle dishes. In the rice-producing southern areas, however, no meal is complete without a bowl of white rice. South western regions are well known for their spicy soups, but in the drought affected north-western areas grilled meats are common.</p>
+                        </div>
+                        <div class="paragraph">
+                            <p><b>4.</b><select id="p4q4" class="heading-select"></select></p>
+                           <p>Despite significant regional differences in ingredients, several preparation techniques are common throughout China. Vegetables tend to be chopped up into bite-size pieces that can be picked up using chop-sticks. Often meat and fish are served 'on the bone' because this is considered tastier. Frying ingredients in small amounts of oil is a common way to cook, and steaming food is also popular. It is common to see freshly steamed pork buns being sold on the streets of any Chinese city.</p>
+                        </div>
+                        <div class="paragraph">
+                            <p><b>5.</b><select id="p4q5" class="heading-select"></select></p>
+                            <p>Street food is a popular way to eat, and small road-side stalls are common. In fact, eating out has always been a part of the culture, most likely because kitchens in people's homes tend to be small and small restaurants are inexpensive. The Chinese meal is always a group event and shared dishes are set out in the centre of the table so that guests can try a variety of foods, using their chop- sticks to select tasty mouthfuls of food. The meal is usually accompanied with tiny cups of tea which are constantly refilled or, on very special occasions, rice wine will be brought out.</p>
+                        </div>
+                        <div class="paragraph">
+                            <p><b>6.</b><select id="p4q6" class="heading-select"></select></p>
+                            <p>While the love of traditional Chinese food is strong, there are signs that the Chinese diet is altering. Traditionally, dairy products were absent from the Chinese diet, and many Chinese show symptoms of being mildly allergic to milk. Today, however, there is an increase in the demand for dairy products as more and more parents feed their children milk to promote growth. Also, the Chinese now consume a more diverse range of foods from different countries. The more diverse eating habits of the urban population mostly seem to include richer, higher fat foreign fast foods and Chinese dishes.</p>
+                        </div>
+                        <div class="paragraph">
+                            <p><b>7.</b><select id="p4q7" class="heading-select"></select></p>
+                            <p>The large size of the Chinese population means that their eating habits will affect food resources around the world and have an impact on the Chinese nation itself. Increased demand for meat and milk will put a strain on food production in China and abroad. Because the changing diet has led to an increase in diseases usually associated with wealthy, developed nations, overall population health is also a concern. As the Chinese economy grows, achieving the balance that is at the centre of Chinese food philosophy will certainly become more challenging.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <div class="navigation-buttons">
+                    <button id="prev-btn" class="btn nav-btn" style="display: none;">Previous</button>
+                    <button id="next-btn" class="btn nav-btn">Next</button>
+                    <button id="finish-btn" class="btn" style="display: none;">HOÀN THÀNH</button>
+                </div>
+            </div>
+
+            <!-- Result Screen -->
+            <div id="result-screen">
+                <canvas id="confetti"></canvas>
+                <h2>CHÚC MỪNG BẠN ĐÃ HOÀN THÀNH </h2>
+                <div class="score-display">
+                    <div class="score-circle">
+                        <span id="final-score">0/50</span>
+                        <span id="cefr-level">A1</span>
+                    </div>
+                </div>
+                <button id="review-btn" class="btn">Xem lại đáp án</button>
+            </div>
+
+            <!-- Review Screen -->
+            <div id="review-screen">
+                 <div class="quiz-header"><h2>Xem lại bài làm</h2></div>
+                 <div id="review-content"></div>
+                 <div class="navigation-buttons" style="justify-content: center; gap: 20px;">
+                    <button id="retry-btn" class="btn nav-btn">Làm lại bài test</button>
+                    <button id="back-to-result-btn" class="btn">Quay lại kết quả</button>
+                 </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <!-- Link on the left -->
+            <div>
+                <p>📌 Aptis học là trúng, thi là đậu: 
+                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSd13IJw8YFa-HkyD8MEP_QirSxw8pgFODfAJzwZvZ8rB-6f9w/viewform" target="_blank" style="font-weight: bold; color: var(--primary-color); text-decoration: underline;">Tại đây</a>
+                </p>
+            </div>
+            <!-- Contact info on the right -->
+            <div>
+                <p>Email: tudauaptis@gmail.com</p>
+                <p>Tiktok: @tudauaptis</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const reviewScreen = document.getElementById('review-screen');
+        const timerContainer = document.getElementById('timer-container');
+        const timerEl = document.getElementById('timer');
+        const startBtn = document.getElementById('start-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const finishBtn = document.getElementById('finish-btn');
+        const reviewBtn = document.getElementById('review-btn');
+        const backToResultBtn = document.getElementById('back-to-result-btn');
+        const retryBtn = document.getElementById('retry-btn');
+        const parts = document.querySelectorAll('.part-container');
+        
+        let currentPartIndex = 0;
+        let timerInterval;
+        let userAnswers = {};
+
+        // --- Correct Answers & Data ---
+        const correctAnswers = {
+            part1: { p1q1: 'live', p1q2: 'share', p1q3: 'class', p1q4: 'drive', p1q5: 'cook' },
+            part2: { 
+                p2t1: ['4', '2', '5', '3', '1'], 
+                p2t2: ['2', '4', '3', '5', '1'] 
+            },
+            part3: { p3q1: 'A', p3q2: 'A', p3q3: 'C', p3q4: 'B', p3q5: 'D', p3q6: 'C', p3q7: 'B' },
+            part4: { p4q1: '7', p4q2: '1', p4q3: '5', p4q4: '2', p4q5: '3', p4q6: '4', p4q7: '6' }
+        };
+        const part3PersonMapping = { A: ['p3q1', 'p3q2'], B: ['p3q4', 'p3q7'], C: ['p3q3', 'p3q6'], D: ['p3q5'] };
+        const part4Headings = [
+            { id: '1', text: 'The influence of philosophy' }, { id: '2', text: 'Cooking methods' },
+            { id: '3', text: 'The style of eating' }, { id: '4', text: 'Change in the Chinese diet' },
+            { id: '5', text: 'Regional variations' }, { id: '6', text: 'Effects of changing diet' },
+            { id: '7', text: 'The origins of Chinese food' }, { id: '8', text: 'The popularity of chinese cuisine' }
+        ];
+
+        // --- Functions ---
+        function startQuiz() {
+            startScreen.style.display = 'none';
+            quizScreen.style.display = 'block';
+            timerContainer.style.display = 'block';
+            startTimer(35 * 60);
+            populatePart4Headings();
+            initializeDragAndDrop();
+        }
+
+        function startTimer(duration) {
+            let time = duration;
+            timerInterval = setInterval(() => {
+                const minutes = Math.floor(time / 60);
+                let seconds = time % 60;
+                seconds = seconds < 10 ? '0' + seconds : seconds;
+                timerEl.textContent = `${minutes}:${seconds}`;
+                time--;
+                if (time < 0) {
+                    clearInterval(timerInterval);
+                    submitTest();
+                }
+            }, 1000);
+        }
+
+        function showPart(index) {
+            parts.forEach((part, i) => {
+                part.classList.toggle('active', i === index);
+            });
+            prevBtn.style.display = index > 0 ? 'inline-block' : 'none';
+            nextBtn.style.display = index < parts.length - 1 ? 'inline-block' : 'none';
+            finishBtn.style.display = index === parts.length - 1 ? 'inline-block' : 'none';
+        }
+
+        function populatePart4Headings() {
+            const selects = document.querySelectorAll('.heading-select');
+            selects.forEach(select => {
+                select.innerHTML = '<option value="">-- Choose a heading --</option>';
+                part4Headings.forEach(heading => {
+                    select.innerHTML += `<option value="${heading.id}">${heading.text}</option>`;
+                });
+            });
+        }
+        
+        function submitTest() {
+            clearInterval(timerInterval);
+            const score = calculateScore();
+            displayResults(score);
+        }
+
+        function calculateScore() {
+            let totalScore = 0;
+            userAnswers = {};
+
+            // Part 1
+            userAnswers.part1 = {};
+            for (const qId in correctAnswers.part1) {
+                const userAnswer = document.getElementById(qId).value;
+                userAnswers.part1[qId] = userAnswer;
+                if (userAnswer === correctAnswers.part1[qId]) {
+                    totalScore += 2;
+                }
+            }
+
+            // Part 2
+            userAnswers.part2 = { p2t1: [], p2t2: [] };
+            const userOrder1 = Array.from(document.querySelectorAll('#p2t1-drop-zones .draggable-item')).map(item => item.dataset.id);
+            userAnswers.part2.p2t1 = userOrder1;
+            if (JSON.stringify(userOrder1) === JSON.stringify(correctAnswers.part2.p2t1)) {
+                totalScore += 5;
+            }
+            const userOrder2 = Array.from(document.querySelectorAll('#p2t2-drop-zones .draggable-item')).map(item => item.dataset.id);
+            userAnswers.part2.p2t2 = userOrder2;
+            if (JSON.stringify(userOrder2) === JSON.stringify(correctAnswers.part2.p2t2)) {
+                totalScore += 5;
+            }
+
+            // Part 3
+            userAnswers.part3 = {};
+            const personScores = { A: 0, B: 0, C: 0, D: 0 };
+            for (const qId in correctAnswers.part3) {
+                const userAnswer = document.getElementById(qId).value;
+                userAnswers.part3[qId] = userAnswer;
+                if (userAnswer === correctAnswers.part3[qId]) {
+                    personScores[userAnswer]++;
+                }
+            }
+            for (const person in personScores) {
+                const correctCount = personScores[person];
+                const totalForPerson = part3PersonMapping[person].length;
+                if (correctCount === totalForPerson) {
+                    totalScore += 4;
+                } else if (correctCount > 0) {
+                    totalScore += (correctCount / totalForPerson) * 4;
+                }
+            }
+            
+            // Part 4
+            userAnswers.part4 = {};
+            for (const qId in correctAnswers.part4) {
+                 const selectEl = document.getElementById(qId);
+                 if (selectEl) {
+                    const userAnswer = selectEl.value;
+                    userAnswers.part4[qId] = userAnswer;
+                    if (userAnswer === correctAnswers.part4[qId]) {
+                        totalScore += 2;
+                    }
+                 }
+            }
+
+            return Math.round(totalScore);
+        }
+
+        function getCefrLevel(score) {
+            if (score >= 46) return 'C1';
+            if (score >= 38) return 'B2';
+            if (score >= 26) return 'B1';
+            if (score >= 16) return 'A2';
+            if (score >= 8) return 'A1';
+            return 'Below A1';
+        }
+
+        function displayResults(score) {
+            quizScreen.style.display = 'none';
+            resultScreen.style.display = 'block';
+            document.getElementById('final-score').textContent = `${score}/50`;
+            document.getElementById('cefr-level').textContent = getCefrLevel(score);
+            launchConfetti();
+        }
+
+        function showReview() {
+            resultScreen.style.display = 'none';
+            reviewScreen.style.display = 'block';
+            const reviewContent = document.getElementById('review-content');
+            reviewContent.innerHTML = '';
+
+            // Review Part 1
+            let part1Html = '<h3>Part 1</h3>';
+            for(const qId in correctAnswers.part1) {
+                const userAns = userAnswers.part1[qId] || "Chưa trả lời";
+                const correctAns = correctAnswers.part1[qId];
+                const isCorrect = userAns === correctAns;
+                part1Html += `<div class="review-item ${isCorrect ? 'correct' : 'incorrect'}">
+                    <p><b>Câu ${qId.slice(-1)}:</b></p>
+                    <p>Bạn chọn: <span class="${isCorrect ? '' : 'user-answer'}">${userAns}</span></p>
+                    ${!isCorrect ? `<p>Đáp án đúng: <span class="correct-answer">${correctAns}</span></p>` : ''}
+                </div>`;
+            }
+            reviewContent.innerHTML += part1Html;
+
+            // Review Part 2
+            let part2Html = '<h3>Part 2</h3>';
+            const userOrder1 = userAnswers.part2.p2t1.join(' -> ');
+            const correctOrder1 = correctAnswers.part2.p2t1.join(' -> ');
+            const isCorrect1 = JSON.stringify(userAnswers.part2.p2t1) === JSON.stringify(correctAnswers.part2.p2t1);
+            part2Html += `<div class="review-item ${isCorrect1 ? 'correct' : 'incorrect'}">
+                <p><b>Bài sắp xếp 1 (Câu 2):</b></p>
+                <p>Thứ tự của bạn: <span class="${isCorrect1 ? '' : 'user-answer'}">${userOrder1 || "Chưa trả lời"}</span></p>
+                ${!isCorrect1 ? `<p>Thứ tự đúng: <span class="correct-answer">${correctOrder1}</span></p>` : ''}
+            </div>`;
+            const userOrder2 = userAnswers.part2.p2t2.join(' -> ');
+            const correctOrder2 = correctAnswers.part2.p2t2.join(' -> ');
+            const isCorrect2 = JSON.stringify(userAnswers.part2.p2t2) === JSON.stringify(correctAnswers.part2.p2t2);
+            part2Html += `<div class="review-item ${isCorrect2 ? 'correct' : 'incorrect'}">
+                <p><b>Bài sắp xếp 2 (Câu 3):</b></p>
+                <p>Thứ tự của bạn: <span class="${isCorrect2 ? '' : 'user-answer'}">${userOrder2 || "Chưa trả lời"}</span></p>
+                ${!isCorrect2 ? `<p>Thứ tự đúng: <span class="correct-answer">${correctOrder2}</span></p>` : ''}
+            </div>`;
+            reviewContent.innerHTML += part2Html;
+            
+             // Review Part 3
+            let part3Html = '<h3>Part 3</h3>';
+            for(const qId in correctAnswers.part3) {
+                const userAns = userAnswers.part3[qId] || "Chưa trả lời";
+                const correctAns = correctAnswers.part3[qId];
+                const isCorrect = userAns === correctAns;
+                part3Html += `<div class="review-item ${isCorrect ? 'correct' : 'incorrect'}">
+                    <p><b>Câu ${qId.slice(-1)}:</b></p>
+                    <p>Bạn chọn: <span class="${isCorrect ? '' : 'user-answer'}">${userAns}</span></p>
+                    ${!isCorrect ? `<p>Đáp án đúng: <span class="correct-answer">${correctAns}</span></p>` : ''}
+                </div>`;
+            }
+            reviewContent.innerHTML += part3Html;
+
+            // Review Part 4
+            let part4Html = '<h3>Part 4</h3>';
+            for(const qId in correctAnswers.part4) {
+                const userAnsId = userAnswers.part4[qId];
+                const userAnsText = userAnsId ? (part4Headings.find(h => h.id === userAnsId)?.text || "Không hợp lệ") : "Chưa trả lời";
+                const correctAnsId = correctAnswers.part4[qId];
+                const correctAnsText = part4Headings.find(h => h.id === correctAnsId).text;
+                const isCorrect = userAnsId === correctAnsId;
+                part4Html += `<div class="review-item ${isCorrect ? 'correct' : 'incorrect'}">
+                    <p><b>Đoạn ${qId.slice(-1)}:</b></p>
+                    <p>Bạn chọn: <span class="${isCorrect ? '' : 'user-answer'}">${userAnsText}</span></p>
+                    ${!isCorrect ? `<p>Đáp án đúng: <span class="correct-answer">${correctAnsText}</span></p>` : ''}
+                </div>`;
+            }
+            reviewContent.innerHTML += part4Html;
+        }
+
+        // --- NEW --- Function to manually reset the quiz
+        function resetQuiz() {
+            // Stop any running timer
+            clearInterval(timerInterval);
+            timerContainer.style.display = 'none';
+            timerEl.textContent = '35:00';
+
+            // Hide all screens and show the start screen
+            quizScreen.style.display = 'none';
+            resultScreen.style.display = 'none';
+            reviewScreen.style.display = 'none';
+            startScreen.style.display = 'block';
+
+            // Reset state variables
+            currentPartIndex = 0;
+            userAnswers = {};
+            showPart(0); // Ensure the first part is active for the next run
+
+            // Reset all form inputs to their default state
+            document.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+            
+            // Reset Part 2 Drag and Drop elements to their original positions
+            ['p2t1', 'p2t2'].forEach(task => {
+                const sourceContainer = document.getElementById(`${task}-source`);
+                const dropZoneContainer = document.getElementById(`${task}-drop-zones`);
+                // Move any items from drop zones back to the source list
+                dropZoneContainer.querySelectorAll('.draggable-item').forEach(item => sourceContainer.appendChild(item));
+                // Sort items in the source container to ensure original order
+                const items = Array.from(sourceContainer.children);
+                items.sort((a, b) => a.id.localeCompare(b.id))
+                     .forEach(item => sourceContainer.appendChild(item));
+            });
+
+            // Clear the confetti canvas
+            const canvas = document.getElementById('confetti');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // --- Event Listeners ---
+        startBtn.addEventListener('click', startQuiz);
+        nextBtn.addEventListener('click', () => {
+            if (currentPartIndex < parts.length - 1) {
+                currentPartIndex++;
+                showPart(currentPartIndex);
+            }
+        });
+        prevBtn.addEventListener('click', () => {
+            if (currentPartIndex > 0) {
+                currentPartIndex--;
+                showPart(currentPartIndex);
+            }
+        });
+        finishBtn.addEventListener('click', submitTest);
+        reviewBtn.addEventListener('click', showReview);
+        backToResultBtn.addEventListener('click', () => {
+            reviewScreen.style.display = 'none';
+            resultScreen.style.display = 'block';
+        });
+        // --- UPDATED --- Use the new reset function instead of reloading the page
+        retryBtn.addEventListener('click', resetQuiz);
+
+        // --- Drag and Drop Logic ---
+        function initializeDragAndDrop() {
+            const draggables = document.querySelectorAll('.draggable-item');
+            const dropZones = document.querySelectorAll('.drop-zone');
+
+            draggables.forEach(draggable => {
+                draggable.addEventListener('dragstart', (e) => {
+                    draggable.classList.add('dragging');
+                    e.dataTransfer.setData('text/plain', draggable.id);
+                });
+                draggable.addEventListener('dragend', () => {
+                    draggable.classList.remove('dragging');
+                });
+            });
+
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    zone.classList.add('over');
+                });
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('over');
+                });
+                zone.addEventListener('drop', e => {
+                    e.preventDefault();
+                    zone.classList.remove('over');
+                    
+                    const id = e.dataTransfer.getData('text');
+                    const draggableElement = document.getElementById(id);
+                    const sourceContainerId = draggableElement.parentElement.id;
+                    const sourceContainer = document.getElementById(sourceContainerId);
+
+                    // If the drop zone already has an item, move it back to the source list
+                    if (zone.children.length > 0) {
+                        const existingElement = zone.firstElementChild;
+                        sourceContainer.appendChild(existingElement);
+                    }
+                    
+                    zone.appendChild(draggableElement);
+                });
+            });
+        }
+        
+        // --- Confetti Logic ---
+        function launchConfetti() {
+            const canvas = document.getElementById('confetti');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.parentElement.offsetWidth;
+            canvas.height = canvas.parentElement.offsetHeight;
+            let confetti = [];
+            const confettiCount = 200;
+            const gravity = 0.5;
+            const terminalVelocity = 5;
+            const drag = 0.075;
+            const colors = [
+                { front: 'red', back: 'darkred' }, { front: 'green', back: 'darkgreen' },
+                { front: 'blue', back: 'darkblue' }, { front: 'yellow', back: 'darkyellow' },
+                { front: 'orange', back: 'darkorange' }, { front: 'pink', back: 'darkpink' },
+                { front: 'purple', back: 'darkpurple' }, { front: 'turquoise', back: 'darkturquoise' }
+            ];
+
+            const randomRange = (min, max) => Math.random() * (max - min) + min;
+
+            for (let i = 0; i < confettiCount; i++) {
+                confetti.push({
+                    color: colors[Math.floor(randomRange(0, colors.length))],
+                    dimensions: { x: randomRange(5, 15), y: randomRange(8, 20) },
+                    position: { x: randomRange(0, canvas.width), y: canvas.height - 1 },
+                    rotation: randomRange(0, 2 * Math.PI),
+                    scale: { x: 1, y: 1 },
+                    velocity: { x: randomRange(-25, 25), y: randomRange(0, -50) }
+                });
+            }
+
+            function render() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                confetti.forEach((confetto, index) => {
+                    let width = confetto.dimensions.x * confetto.scale.x;
+                    let height = confetto.dimensions.y * confetto.scale.y;
+                    ctx.translate(confetto.position.x, confetto.position.y);
+                    ctx.rotate(confetto.rotation);
+                    confetto.velocity.x -= confetto.velocity.x * drag;
+                    confetto.velocity.y = Math.min(confetto.velocity.y + gravity, terminalVelocity);
+                    confetto.position.x += confetto.velocity.x;
+                    confetto.position.y += confetto.velocity.y;
+                    if (confetto.position.y >= canvas.height) confetti.splice(index, 1);
+                    if (confetto.position.x > canvas.width || confetto.position.x < 0) confetti.splice(index, 1);
+                    confetto.scale.y = Math.cos(confetto.position.y * 0.1);
+                    ctx.fillStyle = confetto.scale.y > 0 ? confetto.color.front : confetto.color.back;
+                    ctx.fillRect(-width / 2, -height / 2, width, height);
+                    ctx.setTransform(1, 0, 0, 1, 0, 0);
+                });
+                if (confetti.length > 0) window.requestAnimationFrame(render);
+            }
+            render();
+        }
+
+    </script>
+</body>
+</html>
