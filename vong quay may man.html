@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wheel of Fortune - Vòng Quay May Mắn Aptis 2/9</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #fffdf3;
+            overflow-x: hidden;
+        }
+
+        .container-main {
+            max-width: 1200px;
+            margin: auto;
+            padding: 1rem;
+            position: relative;
+        }
+        
+        .wheel-frame {
+            position: relative;
+            width: 480px;
+            height: 480px;
+            margin: 2rem auto;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #FFD700, #F0C000);
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2), inset 0 0 20px rgba(0,0,0,0.4);
+        }
+
+        .wheel-frame::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 98%;
+            height: 98%;
+            border-radius: 50%;
+            background: 
+                radial-gradient(circle at 50% 0, white, transparent 3%),
+                radial-gradient(circle at 50% 100%, white, transparent 3%),
+                radial-gradient(circle at 0 50%, white, transparent 3%),
+                radial-gradient(circle at 100% 50%, white, transparent 3%),
+                radial-gradient(circle at 15.9% 15.9%, white, transparent 3%),
+                radial-gradient(circle at 84.1% 15.9%, white, transparent 3%),
+                radial-gradient(circle at 15.9% 84.1%, white, transparent 3%),
+                radial-gradient(circle at 84.1% 84.1%, white, transparent 3%);
+            background-size: 10px 10px;
+            background-repeat: no-repeat;
+            animation: spin-lights 10s linear infinite;
+        }
+
+        @keyframes spin-lights {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #wheel-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 640px) {
+            .wheel-frame {
+                width: 340px;
+                height: 340px;
+                padding: 10px;
+            }
+        }
+        
+        .wheel-center {
+             position: absolute;
+             top: 50%;
+             left: 50%;
+             transform: translate(-50%, -50%);
+             width: 110px;
+             height: 110px;
+             z-index: 11;
+        }
+
+        .spin-button {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #006A4E;
+            color: white;
+            font-weight: 900;
+            font-size: 1.8rem;
+            border: 6px solid #FFD700;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: background-color 0.3s, transform 0.1s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+         .pointer {
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 40px;
+            background: linear-gradient(145deg, #FFD700, #F0C000);
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            z-index: 12;
+            filter: drop-shadow(0 4px 3px rgba(0,0,0,0.3));
+        }
+
+        .spin-button:hover {
+            transform: scale(1.05);
+        }
+        .spin-button:active {
+            transform: scale(0.98);
+        }
+        .spin-button:disabled {
+            background-color: #999;
+            cursor: not-allowed;
+        }
+        
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            border: 8px solid #006A4E;
+            box-shadow: 0 0 40px rgba(255, 205, 0, 0.7);
+            transform: scale(0.8);
+            transition: transform 0.3s ease-out;
+        }
+        .modal-overlay.visible .modal-content {
+             transform: scale(1);
+        }
+
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1001;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <canvas id="confetti-canvas"></canvas>
+    <div class="container-main">
+
+        <header class="text-center my-8 pt-8">
+            <img src="https://i.ibb.co/mCRQGvgL/avt-t-u-aptis.png" alt="Tủ đậu Aptis Logo" class="w-24 h-24 mx-auto mb-4 rounded-full shadow-md">
+            <h1 class="text-3xl md:text-5xl font-black text-[#006A4E] tracking-wider">WHEEL OF FORTUNE</h1>
+            <p class="text-xl md:text-3xl font-bold text-[#DA291C] mt-4 animate-pulse uppercase">QUAY SỐ ĐỀU TAY - RINH DEAL MỖI NGÀY</p>
+            <p class="text-base md:text-xl font-bold text-[#006A4E] mt-2">Giải phóng stress - Nâng band Aptis</p>
+            <div class="mt-6 bg-[#006A4E] text-white inline-block px-6 py-2 rounded-full shadow-lg">
+                <p class="font-bold text-lg">Thời gian: 01/09/2025 - 07/09/2025</p>
+            </div>
+        </header>
+
+        <main>
+            <!-- Wheel Section -->
+            <div class="wheel-frame">
+                <div class="pointer"></div>
+                <div class="wheel-container">
+                    <canvas id="wheel-canvas"></canvas>
+                    <div class="wheel-center">
+                         <button id="spin-btn" class="spin-button">QUAY</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rules Section -->
+            <section class="mt-16 bg-white/90 p-6 rounded-lg shadow-xl border-2 border-[#006A4E]">
+                <h3 class="text-3xl font-black text-center text-[#DA291C] mb-6">THỂ LỆ MINIGAME: VÒNG QUAY MAY MẮN</h3>
+                <div class="space-y-6 text-lg text-left">
+                    <div>
+                        <h4 class="font-bold text-xl text-[#006A4E]">1. CÁCH THỨC THAM GIA</h4>
+                        <ul class="list-disc list-inside ml-4 mt-2 space-y-1">
+                            <li>Nhấp nút “QUAY” ở trung tâm vòng quay để thử vận may</li>
+                            <li>Mỗi người chơi có duy nhất 1 lượt quay/ngày</li>
+                            <li>Đối tượng khuyến mại: tất cả mọi người (đặc biệt hữu ích với những bạn có dự định học và thi Aptis sắp tới)</li>
+                            <li>Thời gian triển khai: <strong>Từ 01/09/2025 đến 07/09/2025</strong></li>
+                            <li>Nếu quay trúng ô có deal ưu đãi, bạn sẽ nhận được <strong class="text-[#006A4E]">mã trúng thưởng</strong>. Hãy copy mã này để đăng ký mua tài liệu Aptis với giá siêu hời</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-xl text-[#006A4E]">2. CƠ CẤU GIẢI THƯỞNG</h4>
+                         <ul class="list-disc list-inside ml-4 mt-2 space-y-1">
+                            <li><strong>Tặng 1 kỹ năng tài liệu bất kỳ:</strong> Nhận miễn phí 1 kỹ năng bạn chọn</li>
+                            <li><strong>Giảm 29%</strong> khi mua combo bộ tài liệu 4 kỹ năng Aptis (<strong>TIẾT KIỆM NGAY 58K</strong>)</li>
+                            <li><strong>Giảm 29K</strong> khi mua combo bộ tài liệu 4 kỹ năng Aptis</li>
+                            <li><strong>Giảm 19K</strong> khi mua bất kỳ tài liệu nào (chỉ cần mua ít nhất 1 kỹ năng giảm ngay 19K)</li>
+                            <li><strong>Giảm 10%</strong> khi mua combo bộ tài liệu 4 kỹ năng (<strong>TIẾT KIỆM NGAY 20K</strong>)</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-xl text-[#006A4E]">3. CÁCH SỬ DỤNG MÃ TRÚNG THƯỞNG</h4>
+                        <ul class="list-disc list-inside ml-4 mt-2 space-y-1">
+                            <li>Sau khi quay và copy mã, màn hình sẽ hiện <strong>LINK ĐĂNG KÝ NHẬN TÀI LIỆU</strong></li>
+                            <li>Bấm vào link và điền thông tin cùng mã trúng thưởng theo hướng dẫn</li>
+                            <li>Admin sẽ xác nhận trong vòng 12h và gửi email tới bạn</li>
+                            <li>Hạn sử dụng mã trúng thưởng: trong tháng 9/2025</li>
+                            <li>Nếu có bất kỳ thắc mắc gì liên hệ trực tiếp với admin thông qua Email: tudauaptis@gmail.com hoặc Kênh tiktok: @tudauaptis.</li>
+                        </ul>
+                    </div>
+                    <p class="font-bold text-center pt-4">📌 Lưu ý: Số lượng mã ưu đãi có hạn mỗi ngày – nhanh tay kẻo lỡ!</p>
+                </div>
+            </section>
+        </main>
+
+        <footer class="mt-8 mb-8 bg-[#fdfbf2] p-4 rounded-lg shadow-lg border border-gray-200">
+            <div class="flex flex-col sm:flex-row justify-between items-center text-base text-[#006A4E] space-y-4 sm:space-y-0">
+                <!-- Left side -->
+                <div class="text-center sm:text-left">
+                    <p>
+                        <span class="text-lg relative top-1">📌</span> Aptis - học là trúng, thi là đậu: 
+                        <a href="https://docs.google.com/forms/d/e/1FAIpQLSd13IJw8YFa-HkyD8MEP_QirSxw8pgFODfAJzwZvZ8rB-6f9w/viewform" target="_blank" rel="noopener noreferrer" class="font-bold underline hover:text-[#DA291C] transition-colors">Tại đây</a>
+                    </p>
+                </div>
+                <!-- Right side -->
+                <div class="text-center sm:text-left">
+                    <p>Email: tudauaptis@gmail.com</p>
+                    <p>Tiktok: @tudauaptis</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modal-title" class="text-2xl font-bold text-[#006A4E] mb-4"></h3>
+            <p id="modal-prize" class="text-lg mb-4"></p>
+            <div id="modal-code-wrapper" class="hidden">
+                <p class="text-base">Mã của bạn là:</p>
+                <div class="bg-gray-200 text-2xl font-bold text-[#DA291C] p-3 my-2 rounded-lg inline-block tracking-widest">
+                    <span id="modal-code"></span>
+                </div>
+                 <button id="copy-btn" class="ml-2 bg-[#006A4E] text-white px-3 py-1 rounded-md hover:bg-teal-900 transition">Sao chép</button>
+            </div>
+            <p id="modal-limit-info" class="text-sm text-gray-500 mt-4"></p>
+            <!-- Registration Link Section -->
+            <div id="registration-link-wrapper" class="hidden mt-6">
+                <p class="text-lg">Sử dụng mã trúng thưởng của bạn tại đây👇</p>
+                <a href="https://forms.gle/xbPNwQfZjPkDc23eA" target="_blank" rel="noopener noreferrer" class="font-bold text-xl text-[#006A4E] underline hover:text-[#DA291C] transition-colors">
+                    LINK ĐĂNG KÝ NHẬN TÀI LIỆU
+                </a>
+            </div>
+            <button id="close-modal-btn" class="mt-6 bg-[#DA291C] text-white font-bold px-8 py-2 rounded-full hover:bg-[#b82216] transition">Đóng</button>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('wheel-canvas');
+            const spinBtn = document.getElementById('spin-btn');
+            const resultModal = document.getElementById('result-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const copyBtn = document.getElementById('copy-btn');
+            const registrationLinkWrapper = document.getElementById('registration-link-wrapper');
+            const myCanvas = document.getElementById('confetti-canvas');
+            const myConfetti = confetti.create(myCanvas, {
+                resize: true,
+                useWorker: true
+            });
+
+            const prizes = [
+                { text: 'Tặng 1 Tài Liệu Kỹ Năng Bất Kỳ', code: 'nghileanlanh', limit: 5, key: 'free_skill' },
+                { text: 'Giảm 29% Combo Bộ Tài Liệu 4 Kỹ Năng', code: 'quockhanhanvui', limit: 3, key: 'discount29_percent' },
+                { text: 'Giảm 10% Combo Bộ Tài Liệu 4 Kỹ Năng', code: 'hoctrungthidau', limit: Infinity, key: 'discount10_percent' },
+                { text: 'Giảm 29K Combo Bộ Tài Liệu 4 Kỹ Năng', code: 'toquocoi', limit: Infinity, key: 'discount29k_combo' },
+                { text: 'Giảm 19K Tài Liệu Bất Kỳ', code: 'tudauaptis', limit: 5, key: 'discount19k_any' },
+                { text: 'Chúc Bạn May Mắn Lần Sau', code: null, limit: Infinity, key: 'noluck' },
+            ];
+
+            const segmentAngle = 2 * Math.PI / prizes.length;
+            const colors = ['#006A4E', '#fffdf3'];
+            let currentRotation = 0;
+            let isSpinning = false;
+            let spinAnimation;
+
+            const ctx = canvas.getContext('2d');
+            const devicePixelRatio = window.devicePixelRatio || 1;
+            
+            function resizeCanvas() {
+                const size = canvas.clientWidth;
+                canvas.width = size * devicePixelRatio;
+                canvas.height = size * devicePixelRatio;
+                ctx.scale(devicePixelRatio, devicePixelRatio);
+                drawWheel();
+            }
+
+            function drawWheel() {
+                const size = canvas.clientWidth;
+                const center = size / 2;
+                const radius = Math.max(0, size / 2 - 5); // a little padding
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.save();
+                ctx.translate(center, center);
+                ctx.rotate(currentRotation);
+
+                prizes.forEach((prize, i) => {
+                    const startAngle = i * segmentAngle - Math.PI / 2 - segmentAngle / 2;
+                    const endAngle = startAngle + segmentAngle;
+
+                    // Draw segment
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.arc(0, 0, radius, startAngle, endAngle);
+                    ctx.closePath();
+                    ctx.fillStyle = colors[i % 2];
+                    ctx.fill();
+                    
+                    // Draw text
+                    ctx.save();
+                    ctx.rotate(startAngle + segmentAngle / 2);
+                    ctx.textAlign = 'center';
+                    ctx.fillStyle = colors[(i + 1) % 2];
+                    
+                    const fontSize = size > 400 ? 15 : 12;
+                    ctx.font = `bold ${fontSize}px 'Be Vietnam Pro'`;
+                    
+                    const text = prize.text;
+                    const textY = radius * 0.7;
+                    ctx.translate(textY, 0);
+                    ctx.rotate(Math.PI / 2);
+
+                    const words = text.split(' ');
+                    let line = '';
+                    let y = 0;
+                    const lineHeight = fontSize * 1.2;
+                    const maxWidth = size > 400 ? 110 : 85;
+
+                    for(let n = 0; n < words.length; n++) {
+                      let testLine = line + words[n] + ' ';
+                      let metrics = ctx.measureText(testLine);
+                      let testWidth = metrics.width;
+                      if (testWidth > maxWidth && n > 0) {
+                        ctx.fillText(line, 0, y);
+                        line = words[n] + ' ';
+                        y += lineHeight;
+                      } else {
+                        line = testLine;
+                      }
+                    }
+                    ctx.fillText(line, 0, y);
+
+                    ctx.restore();
+                });
+                ctx.restore();
+            }
+            
+            // --- Local Storage Management ---
+            const getTodayString = () => new Date().toISOString().split('T')[0];
+
+            const getSpinData = () => {
+                const data = JSON.parse(localStorage.getItem('aptisSpinGameV4')) || {};
+                const today = getTodayString();
+                if (data.date !== today) {
+                    return { date: today, counts: {}, hasSpun: false };
+                }
+                return data;
+            };
+
+            const saveSpinData = (data) => {
+                localStorage.setItem('aptisSpinGameV4', JSON.stringify(data));
+            };
+
+            const checkDailySpin = () => {
+                const spinData = getSpinData();
+                if (spinData.hasSpun) {
+                    spinBtn.disabled = true;
+                    spinBtn.textContent = 'ĐÃ QUAY';
+                }
+            };
+
+            const getAvailablePrizes = () => {
+                const spinData = getSpinData();
+                return prizes.map((prize, index) => {
+                    const count = spinData.counts[prize.key] || 0;
+                    return { ...prize, index, isAvailable: count < prize.limit };
+                });
+            };
+
+            const showMessageModal = (title, message) => {
+                // ... (modal logic remains the same)
+                 const modalTitle = document.getElementById('modal-title');
+                const modalPrize = document.getElementById('modal-prize');
+                const modalCodeWrapper = document.getElementById('modal-code-wrapper');
+                const modalLimitInfo = document.getElementById('modal-limit-info');
+
+                modalTitle.textContent = title;
+                modalPrize.textContent = message;
+                modalCodeWrapper.style.display = 'none';
+                modalLimitInfo.textContent = '';
+                resultModal.classList.add('visible');
+            };
+
+            function spin() {
+                if (isSpinning) return;
+                
+                const spinData = getSpinData();
+                if (spinData.hasSpun) {
+                    showMessageModal('Thông Báo', 'Bạn đã hết lượt quay hôm nay. Hãy quay lại vào ngày mai nhé!');
+                    return;
+                }
+
+                isSpinning = true;
+                spinBtn.disabled = true;
+
+                const availablePrizes = getAvailablePrizes().filter(p => p.isAvailable);
+                if (availablePrizes.length === 0) {
+                     showMessageModal('Rất Tiếc', 'Tất cả các phần thưởng giới hạn đã được trao hết hôm nay. Vui lòng quay lại vào ngày mai!');
+                    isSpinning = false;
+                    spinBtn.disabled = false;
+                    return;
+                }
+                
+                const targetPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
+                const targetIndex = targetPrize.index;
+
+                const rotations = Math.floor(Math.random() * 4) + 8;
+                // BUG FIX: The original random offset was too large and biased in one direction.
+                // This caused the visual result on the wheel to sometimes mismatch the actual prize awarded.
+                // The new offset is smaller and centered, ensuring the pointer lands clearly within the correct segment.
+                const randomOffset = (Math.random() - 0.5) * 0.7; // Generates a value between -0.35 and +0.35
+                const targetRotation = 2 * Math.PI * rotations - (targetIndex * segmentAngle) - (randomOffset * segmentAngle);
+
+                let start = null;
+                const duration = 6000;
+                const startRotation = currentRotation;
+
+                function animate(timestamp) {
+                    if (!start) start = timestamp;
+                    const progress = timestamp - start;
+                    const easeOut = (t) => 1 - Math.pow(1 - t, 4);
+                    const t = Math.min(progress / duration, 1);
+                    
+                    const angle = startRotation + (targetRotation - startRotation) * easeOut(t);
+                    currentRotation = angle % (2 * Math.PI);
+                    
+                    drawWheel();
+                    
+                    if (progress < duration) {
+                        spinAnimation = requestAnimationFrame(animate);
+                    } else {
+                        currentRotation = targetRotation % (2 * Math.PI);
+                        isSpinning = false;
+                        spinData.hasSpun = true;
+                        if (targetPrize.limit !== Infinity) {
+                            spinData.counts[targetPrize.key] = (spinData.counts[targetPrize.key] || 0) + 1;
+                        }
+                        saveSpinData(spinData);
+                        displayResult(targetPrize);
+                        checkDailySpin();
+                    }
+                }
+                
+                cancelAnimationFrame(spinAnimation);
+                spinAnimation = requestAnimationFrame(animate);
+            }
+
+            const launchConfetti = () => {
+                myConfetti({ particleCount: 150, spread: 180, origin: { y: 0.6 } });
+            };
+
+            const displayResult = (prize) => {
+                const modalTitle = document.getElementById('modal-title');
+                const modalPrize = document.getElementById('modal-prize');
+                const modalCodeWrapper = document.getElementById('modal-code-wrapper');
+                const modalCode = document.getElementById('modal-code');
+                const modalLimitInfo = document.getElementById('modal-limit-info');
+                registrationLinkWrapper.classList.add('hidden'); // Reset state on open
+                
+                if (prize.code) {
+                    modalTitle.textContent = 'CHÚC MỪNG BẠN!';
+                    modalPrize.innerHTML = `Bạn đã trúng: ${prize.text.replace('<br>', ' ')}`;
+                    modalCode.textContent = prize.code;
+                    modalCodeWrapper.style.display = 'block';
+                } else if (prize.key.includes('noluck')) {
+                    modalTitle.textContent = 'TIẾC QUÁ!';
+                    modalPrize.textContent = 'Chúc bạn may mắn lần sau. Hãy quay lại vào ngày mai nhé!';
+                    modalCodeWrapper.style.display = 'none';
+                } else {
+                    modalTitle.textContent = 'CHÚC MỪNG BẠN!';
+                    modalPrize.innerHTML = `Bạn đã nhận được: ${prize.text.replace('<br>', ' ')}`;
+                    modalCodeWrapper.style.display = 'none';
+                }
+
+                if (prize.limit !== Infinity) {
+                    const spinData = getSpinData();
+                    const count = spinData.counts[prize.key] || 0;
+                    modalLimitInfo.textContent = `(Còn lại ${prize.limit - count} giải hôm nay)`;
+                } else {
+                    modalLimitInfo.textContent = '';
+                }
+
+                resultModal.classList.add('visible');
+                if (!prize.key.includes('noluck')) {
+                    launchConfetti();
+                }
+            };
+            
+            spinBtn.addEventListener('click', spin);
+            closeModalBtn.addEventListener('click', () => resultModal.classList.remove('visible'));
+            resultModal.addEventListener('click', (e) => {
+                if (e.target === resultModal) {
+                    resultModal.classList.remove('visible');
+                }
+            });
+
+            copyBtn.addEventListener('click', () => {
+                const codeToCopy = document.getElementById('modal-code').textContent;
+                
+                // Using document.execCommand('copy') as a fallback for environments 
+                // like sandboxed iframes where the modern Clipboard API is restricted.
+                const textArea = document.createElement("textarea");
+                textArea.value = codeToCopy;
+                
+                // Styling to make it invisible and prevent scrolling
+                textArea.style.position = 'fixed';
+                textArea.style.top = '0';
+                textArea.style.left = '0';
+                textArea.style.width = '2em';
+                textArea.style.height = '2em';
+                textArea.style.padding = '0';
+                textArea.style.border = 'none';
+                textArea.style.outline = 'none';
+                textArea.style.boxShadow = 'none';
+                textArea.style.background = 'transparent';
+
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        copyBtn.textContent = 'Đã chép!';
+                        registrationLinkWrapper.classList.remove('hidden'); // Show the link
+                        setTimeout(() => { copyBtn.textContent = 'Sao chép'; }, 2000);
+                    } else {
+                        console.error('Sao chép không thành công');
+                         copyBtn.textContent = 'Lỗi!';
+                        setTimeout(() => { copyBtn.textContent = 'Sao chép'; }, 2000);
+                    }
+                } catch (err) {
+                    console.error('Không thể sao chép mã: ', err);
+                    copyBtn.textContent = 'Lỗi!';
+                    setTimeout(() => { copyBtn.textContent = 'Sao chép'; }, 2000);
+                }
+
+                document.body.removeChild(textArea);
+            });
+
+            // Initial setup
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            checkDailySpin();
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
